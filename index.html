@@ -11,9 +11,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Space+Grotesk:wght@500;600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f2f7f5; --card:#ffffff; --border:#dde6e3; --border-strong:#c3d0cc;
-    --text:#16242a; --text-secondary:#54666b; --text-muted:#8598a1;
-    --accent:#e89438; --accent-bg:#eaf1f3; --accent-text:#0e2d3a;
+    /* Warm "document paper" palette — the passport should read as a physical booklet, not a web app */
+    --bg:#ece5d3; --card:#faf6ea; --border:#e2d9c2; --border-strong:#c6b995;
+    --text:#16242a; --text-secondary:#5a6055; --text-muted:#8f8a76;
+    --accent:#e89438; --accent-bg:#edeadb; --accent-text:#0e2d3a;
+    /* Subtle paper-grain noise, tiled across every panel */
+    --paper-noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* Fine security wave, like the guilloché printing inside a real passport */
+    --secure-wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='22'%3E%3Cpath d='M0 11 Q 17.5 0 35 11 T 70 11 T 105 11 T 140 11' fill='none' stroke='%230f6e56' stroke-opacity='0.08' stroke-width='1'/%3E%3C/svg%3E");
     --amber-bg:#faeeda; --amber-text:#633806;
     --pink-bg:#fbeaf0; --pink-text:#72243e;
     --star-on:#e89438; --star-off:#dcd6c6;
@@ -37,8 +42,9 @@
     line-height:1.5; padding:1.5rem 1rem 4rem;
     background-color:var(--bg);
     background-image:
-      radial-gradient(rgba(0,0,0,.018) 1px, transparent 1px);
-    background-size:3px 3px;
+      radial-gradient(rgba(60,45,20,.03) 1px, transparent 1px),
+      linear-gradient(rgba(255,252,240,.5), rgba(214,203,175,.35));
+    background-size:3px 3px, 100% 100%;
   }
   .wrap{max-width:560px; margin:0 auto; position:relative; padding:14px;}
   .wrap::before, .wrap::after, .wrap .corner-tl, .wrap .corner-tr, .wrap .corner-bl, .wrap .corner-br{
@@ -59,9 +65,18 @@
   .panel{
     background:var(--card); border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem;
     border:1px solid var(--border-strong);
-    box-shadow:inset 0 0 0 4px var(--bg), inset 0 0 0 5px var(--border);
+    box-shadow:inset 0 0 0 4px var(--card), inset 0 0 0 5px var(--border), 0 1px 3px rgba(60,45,20,.08);
+    background-image:var(--paper-noise);
+  }
+  /* Passport pages with security printing (bio page, stamp pages) layer the fine wave under the grain */
+  .panel.secure-page{
+    background-image:var(--paper-noise), var(--secure-wave);
   }
   .panel h2{font-family:var(--font-display); font-size:17px; font-weight:600; margin:0 0 4px;}
+  /* Page header strip, like the "VISAS / VISAS" running heads inside a real passport */
+  .page-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:-.15rem 0 .85rem; padding-bottom:.5rem; border-bottom:1px solid var(--border);}
+  .page-head .ph-title{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-muted);}
+  .page-head .ph-num{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.14em; color:var(--text-muted); white-space:nowrap;}
   .panel .hint{font-size:13px; color:var(--text-secondary); margin:0 0 1rem;}
   label.field{display:block; font-size:12.5px; color:var(--text-secondary); margin-bottom:1rem;}
   label.field span{display:block; margin-bottom:5px; font-weight:500; color:var(--text);}
@@ -85,10 +100,32 @@
   .celebrate-item{width:84px;}
   .celebrate-stamp{font-size:2.2rem; line-height:1; margin-bottom:.35rem;}
   .celebrate-label{margin:0; font-size:11px; color:var(--text-secondary);}
+  .celebrate-extra{font-size:12px; color:var(--text-secondary); margin:-.3rem 0 1rem;}
+  /* Each featured stamp slams down like a hand stamp, in sequence */
+  @keyframes stampThunk{
+    0%{opacity:0; transform:scale(2.3) rotate(-15deg);}
+    60%{opacity:1; transform:scale(.9) rotate(4deg);}
+    80%{transform:scale(1.05) rotate(-2deg);}
+    100%{opacity:1; transform:scale(1) rotate(0deg);}
+  }
+  .celebrate-stamp.stamp-thunk{animation:stampThunk .55s cubic-bezier(.2,.85,.35,1) both;}
   .welcome-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:.75rem;}
   .welcome-row h2{margin:0;}
 
-  .bio-page{display:flex; gap:14px; align-items:flex-start; margin-bottom:1rem;}
+  .bio-page{display:flex; gap:14px; align-items:flex-start; margin-bottom:.4rem; position:relative;}
+  /* Embossed issuing-authority seal overlapping the photo corner, like a laminated bio page */
+  .bio-seal{
+    position:absolute; left:38px; top:46px; width:60px; height:60px; border-radius:50%;
+    border:2px double var(--ink-rust); color:var(--ink-rust); opacity:.55;
+    transform:rotate(-14deg); pointer-events:none; mix-blend-mode:multiply;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:var(--font-mono); font-size:7px; letter-spacing:.06em; line-height:1.5; padding:7px;
+  }
+  /* Microprint line, like the anti-forgery text under a real bio page */
+  .microprint{
+    font-family:var(--font-mono); font-size:6.5px; letter-spacing:.28em; color:var(--text-muted);
+    opacity:.75; white-space:nowrap; overflow:hidden; margin:0 0 .8rem; user-select:none;
+  }
   .photo-box{
     width:64px; height:78px; flex-shrink:0; border-radius:3px; border:1.5px solid var(--border-strong);
     background:var(--bg); display:flex; align-items:center; justify-content:center;
@@ -173,6 +210,30 @@
   .qty-btn:hover{background:var(--accent-bg);}
   .qty-val{min-width:18px; text-align:center; font-family:var(--font-mono); font-weight:600; font-size:13px;}
 
+  .house-avg{font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin:0 0 6px;}
+  .cond-row{margin-top:9px;}
+  .cond-title{display:block; font-size:12px; color:var(--text-secondary); margin-bottom:5px;}
+  .cond-chips{display:flex; flex-wrap:wrap; gap:5px;}
+  .cond-chip{
+    font-family:var(--font-accent); font-size:11px; font-weight:500; padding:4px 9px; border-radius:999px;
+    border:0.5px solid var(--border-strong); background:var(--card); color:var(--text-secondary); cursor:pointer;
+  }
+  .cond-chip.active{background:var(--accent-text); border-color:var(--accent-text); color:#f3f8f6;}
+
+  .hist-edit{font-size:11px; margin-top:3px;}
+  .history-item.editing{display:block;}
+  .hist-editor{width:100%;}
+  .hist-editor input[type=number]{
+    width:64px; font-size:13px; padding:6px 8px; border-radius:7px;
+    border:0.5px solid var(--border-strong); background:var(--bg); color:var(--text);
+    font-family:var(--font-mono);
+  }
+  .hist-editor-btns{display:flex; flex-direction:column; gap:7px; margin-top:10px;}
+  .hist-editor-btns .switch-link{text-align:center;}
+
+  .fp-subhead{font-family:var(--font-accent); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin:1.1rem 0 .6rem; font-weight:600;}
+  .fp-share{font-family:var(--font-mono); font-size:11px; color:var(--text-secondary); width:34px; text-align:right; flex-shrink:0;}
+
   .history-item{border-top:0.5px solid var(--border); padding:.6rem 0; font-size:13px; display:flex; justify-content:space-between; gap:8px;}
   .history-item:first-child{border-top:none; padding-top:0;}
   .history-item .h-name{font-weight:500;}
@@ -215,12 +276,19 @@
     background-image:radial-gradient(circle at 30% 30%, rgba(255,255,255,.5), transparent 60%),
       repeating-radial-gradient(circle, transparent 0, transparent 2px, rgba(0,0,0,.05) 3px);
   }
+  /* Earned stamps sit ON the paper like ink, not on top of it */
+  .stamp:not(.locked){mix-blend-mode:multiply;}
+  /* Stamp silhouettes vary the way a drawer full of rubber stamps does — circle, entry-rectangle, oval */
+  .stamp.shape-rect{border-radius:9px; width:86px; height:62px; font-size:26px;}
+  .stamp.shape-oval{border-radius:50%; width:88px; height:60px; font-size:25px;}
   .stamp.locked{border-color:var(--border-strong); background:var(--bg); opacity:.45; filter:grayscale(1); background-image:none;}
   /* Faint hand-stamped "double strike" ghost, offset behind earned stamps */
   .stamp:not(.locked)::before{
-    content:""; position:absolute; inset:-2.5px; border-radius:50%;
+    content:""; position:absolute; inset:-2.5px; border-radius:inherit;
     border:2.5px double currentColor; opacity:.16; transform:translate(2px,1.5px) rotate(3deg);
   }
+  /* The date the stamp was earned, printed under it like an entry date */
+  .stamp-wrap .s-date{font-family:var(--font-mono); font-size:8.5px; letter-spacing:.1em; color:var(--text-muted);}
   .ink-teal .stamp{border-color:var(--ink-teal); color:var(--ink-teal); background:#e1f5ee;}
   .ink-navy .stamp{border-color:var(--ink-navy); color:var(--ink-navy); background:#e7ecf3;}
   .ink-rust .stamp{border-color:var(--ink-rust); color:var(--ink-rust); background:#f5e9e4;}
@@ -238,8 +306,17 @@
   .masters-card .mc-number{font-family:var(--font-mono); font-size:25px; letter-spacing:.04em; color:var(--hs-orange); margin:0; font-weight:600;}
   .masters-panel .hint{color:#a9c2ca;}
 
-  .cover-panel{background:var(--hs-navy); border-color:var(--hs-orange); box-shadow:inset 0 0 0 4px var(--hs-navy), inset 0 0 0 5px #1c4152; text-align:center; padding:2.1rem 1.5rem 1.9rem;}
-  .cover-title{font-family:var(--font-display); font-size:22px; font-weight:600; letter-spacing:.03em; color:#f3f8f6; margin:0 0 .9rem;}
+  .cover-panel{background:var(--hs-navy); border-color:var(--hs-orange); box-shadow:inset 0 0 0 4px var(--hs-navy), inset 0 0 0 5px #1c4152; text-align:center; padding:2.1rem 1.5rem 1.9rem; background-image:var(--paper-noise);}
+  .cover-eyebrow{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.3em; text-transform:uppercase; color:#8bb4c2; margin:0 0 1rem;}
+  /* Foil-stamped crest on the cover */
+  .cover-seal{
+    width:64px; height:64px; margin:0 auto 1rem; border-radius:50%;
+    border:2.5px double var(--hs-orange); display:flex; align-items:center; justify-content:center;
+    font-size:28px; line-height:1; color:var(--hs-orange);
+    box-shadow:0 0 0 3px var(--hs-navy), 0 0 0 4px rgba(232,148,56,.35);
+    text-shadow:0 1px 2px rgba(0,0,0,.45);
+  }
+  .cover-title{font-family:var(--font-display); font-size:22px; font-weight:600; letter-spacing:.03em; color:#f3f8f6; margin:0 0 .9rem; text-shadow:0 1px 0 rgba(0,0,0,.5), 0 -1px 0 rgba(255,255,255,.08);}
   .cover-rule{width:60px; height:1px; background:var(--hs-orange); margin:0 auto 1.3rem;}
   .benefits-list{text-align:left; margin:0 0 1.4rem;}
   .benefit{display:flex; gap:12px; margin-bottom:.9rem;}
@@ -250,6 +327,7 @@
   .cover-hint{font-size:13px; color:#a9c2ca; margin:0 0 1.4rem;}
   .field-note{font-size:11.5px; color:#8bb4c2; margin:-.7rem 0 .9rem; line-height:1.4;}
   .cover-panel label.field{color:#a9c2ca; text-align:left;}
+  .cover-panel label.field span{color:#cfe0e6;}
   .cover-panel input[type=tel], .cover-panel input[type=text], .cover-panel input[type=email]{background:var(--hs-navy-deep); border-color:#1c4152; color:#f3f8f6;}
   .cover-panel input[type=tel]::placeholder, .cover-panel input[type=text]::placeholder, .cover-panel input[type=email]::placeholder{color:#5c7f8c;}
   .cover-panel input[type=checkbox]{accent-color:var(--hs-orange); width:15px; height:15px; flex-shrink:0;}
@@ -284,7 +362,8 @@
 
   <div id="app"></div>
 
-  <footer>Prototype only — remembers you on this device by phone number. Photos pulled live from hsoysters.com where available. Map coordinates are representative growing regions, not exact farm locations.</footer>
+  <footer>This passport contains 7 pages · Issued by the Raw Bar Authority of Charlotte<br>
+  Prototype only — remembers you on this device by phone number. Photos pulled live from hsoysters.com where available. Map coordinates are representative growing regions, not exact farm locations.</footer>
 </div>
 
 <script>
@@ -461,6 +540,27 @@ function normalizePhone(raw){
   if(digits.length > 10) digits = digits.slice(-10);
   return digits;
 }
+// Guest-typed text (names, tasting notes) goes through this before landing in innerHTML.
+function escapeHtml(s){
+  return (s || "").replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+
+// ---------- Condiment tracker — how each oyster was dressed ----------
+var CONDIMENTS = [
+  { key:"naked", label:"Naked", icon:"🦪" },
+  { key:"lemon", label:"Lemon", icon:"🍋" },
+  { key:"mignonette", label:"Mignonette", icon:"🧅" },
+  { key:"cocktail", label:"Cocktail sauce", icon:"🍅" },
+  { key:"horseradish", label:"Horseradish", icon:"🌱" },
+  { key:"hot-sauce", label:"Hot sauce", icon:"🔥" }
+];
+var CONDIMENT_BY_KEY = {};
+CONDIMENTS.forEach(function(c){ CONDIMENT_BY_KEY[c.key] = c; });
+function condimentLabels(keys){
+  return (keys || []).map(function(k){ return CONDIMENT_BY_KEY[k] ? CONDIMENT_BY_KEY[k].label : k; });
+}
 
 // ---------- Backend-backed session ----------
 // Guest records now live in a real database behind Netlify Functions, not localStorage — that's what
@@ -474,6 +574,7 @@ var GUESTS = {};           // in-memory cache — only ever holds the single act
 var activePhone = null;
 var leaderboardRows = null;    // fetched from the server on demand — see ensureLeaderboardLoaded()
 var leaderboardLoading = false;
+var houseAvgs = null;          // per-oyster {avg, count} across every real guest — derived from leaderboardRows
 
 function apiFetch(path, opts){
   opts = opts || {};
@@ -508,6 +609,7 @@ function enterReady(guest){
   var stamps = computeStamps(guest);
   maybeClaimMasterNumber(guest, stamps).then(function(){
     leaderboardRows = null; // this guest's stats may have just changed — refetch next time the tab is viewed
+    houseAvgs = null;
     authState = "ready";
     render();
   });
@@ -532,6 +634,26 @@ function formatIssuedDate(iso){
   try{ return new Date(iso).toLocaleDateString(undefined, { day:"2-digit", month:"short", year:"numeric" }); }
   catch(e){ return ""; }
 }
+// Passport-style all-caps entry date, e.g. "31 AUG 2026"
+function formatStampDate(iso){ return formatIssuedDate(iso).toUpperCase(); }
+// Running page header inside each passport panel — "VISAS & STAMPS ... PAGE 04"
+function pageHeadHtml(num, title){
+  return '<div class="page-head"><span class="ph-title">' + title + '</span><span class="ph-num">PAGE ' + num + '</span></div>';
+}
+// Replays the guest's visits in order to find the visit on which each stamp was first earned,
+// so earned stamps can carry a real entry date like a border stamp. Visit counts are small,
+// so recomputing per prefix is cheap.
+function stampEarnedDates(guest){
+  var visits = guest.visits || [];
+  var dates = {};
+  for(var i = 1; i <= visits.length; i++){
+    var s = computeStamps({ visits: visits.slice(0, i) });
+    [s.overall].concat(s.overallLadder, s.regions, s.states, s.species, s.bonus).forEach(function(st){
+      if(st && st.earned && !dates[st.id]) dates[st.id] = visits[i - 1].date;
+    });
+  }
+  return dates;
+}
 // Purely decorative machine-readable-zone lines, styled after a real passport's bio page footer.
 function mrzLinesFor(guest){
   function pad(str, len){ str = (str || "").toUpperCase().replace(/[^A-Z0-9]/g, "<"); return (str + Array(len).fill("<").join("")).slice(0, len); }
@@ -547,7 +669,7 @@ function allRatings(guest){
   var out = [];
   (guest.visits || []).forEach(function(v){
     (v.ratings || []).forEach(function(r){
-      out.push({ oysterId:r.oysterId, overall:r.overall, note:r.note, detailed:r.detailed || null, qty:r.qty || 1, date:v.date });
+      out.push({ oysterId:r.oysterId, overall:r.overall, note:r.note, detailed:r.detailed || null, qty:r.qty || 1, condiments:r.condiments || [], date:v.date });
     });
   });
   return out;
@@ -567,6 +689,16 @@ function oysterAverages(guest){
   var out = {};
   Object.keys(byOyster).forEach(function(id){ out[id] = byOyster[id].sum / byOyster[id].count; });
   return out;
+}
+// The guest's most recent non-empty tasting note for a given oyster, with its date.
+function lastNoteFor(guest, oysterId){
+  var best = null;
+  allRatings(guest).forEach(function(r){
+    if(r.oysterId === oysterId && r.note){
+      if(!best || (r.date && r.date > best.date)) best = r;
+    }
+  });
+  return best ? { note:best.note, date:best.date } : null;
 }
 function bestOyster(guest){
   var byOyster = {};
@@ -980,27 +1112,35 @@ function nextVisitNudge(guest){
   return candidates[0].message;
 }
 
-function stampCircleHtml(s){
+// Stamp silhouette varies deterministically per id — circle, entry rectangle, or oval —
+// so a filled page looks like it met many different rubber stamps, the way a real passport does.
+var STAMP_SHAPES = ["", "shape-rect", "shape-oval"];
+function stampCircleHtml(s, dates){
   var locked = !s.earned;
   var rot = stampRotation(s.id);
+  var shapeCls = STAMP_SHAPES[stampHash(s.id) % STAMP_SHAPES.length];
   var inner = s.shape ? s.shape : (s.icon || '🦪');
+  var dateHtml = (!locked && dates && dates[s.id]) ? '<span class="s-date">' + formatStampDate(dates[s.id]) + '</span>' : '';
   return '<div class="stamp-wrap">' +
-    '<div class="stamp' + (locked ? ' locked' : '') + '" style="transform:rotate(' + rot + 'deg);">' +
+    '<div class="stamp ' + shapeCls + (locked ? ' locked' : '') + '" style="transform:rotate(' + rot + 'deg);">' +
       inner +
     '</div>' +
     '<span class="s-name">' + s.label + '</span>' +
     (s.tier ? '<span class="s-tier">' + s.tier + '</span>' : '') +
     '<span class="s-caption">' + s.caption + '</span>' +
+    dateHtml +
   '</div>';
 }
 function renderStamps(guest){
   var s = computeStamps(guest);
-  var overallHtml = '<div class="stamp-section"><h3>Overall</h3><div class="stamp-grid ink-gold">' + s.overallLadder.map(stampCircleHtml).join("") + '</div></div>';
-  var regionHtml = '<div class="stamp-section"><h3>By region</h3><div class="stamp-grid ink-teal">' + s.regions.map(stampCircleHtml).join("") + '</div></div>';
-  var stateHtml = '<div class="stamp-section"><h3>By state / province</h3><div class="stamp-grid ink-navy">' + s.states.map(stampCircleHtml).join("") + '</div></div>';
-  var speciesHtml = '<div class="stamp-section"><h3>Species</h3><div class="stamp-grid ink-rust">' + s.species.map(stampCircleHtml).join("") + '</div></div>';
-  var bonusHtml = '<div class="stamp-section"><h3>Special</h3><div class="stamp-grid ink-plum">' + s.bonus.map(stampCircleHtml).join("") + '</div></div>';
-  return '<div class="panel"><h2>Passport stamps</h2><p class="hint">Faded stamps are still waiting to be earned.</p>' +
+  var dates = stampEarnedDates(guest);
+  function grid(arr, ink){ return arr.map(function(st){ return stampCircleHtml(st, dates); }).join(""); }
+  var overallHtml = '<div class="stamp-section"><h3>Overall</h3><div class="stamp-grid ink-gold">' + grid(s.overallLadder) + '</div></div>';
+  var regionHtml = '<div class="stamp-section"><h3>By region</h3><div class="stamp-grid ink-teal">' + grid(s.regions) + '</div></div>';
+  var stateHtml = '<div class="stamp-section"><h3>By state / province</h3><div class="stamp-grid ink-navy">' + grid(s.states) + '</div></div>';
+  var speciesHtml = '<div class="stamp-section"><h3>Species</h3><div class="stamp-grid ink-rust">' + grid(s.species) + '</div></div>';
+  var bonusHtml = '<div class="stamp-section"><h3>Special</h3><div class="stamp-grid ink-plum">' + grid(s.bonus) + '</div></div>';
+  return '<div class="panel secure-page">' + pageHeadHtml("04", "Visas & Stamps · Timbres") + '<h2>Passport stamps</h2><p class="hint">Faded stamps are still waiting to be earned.</p>' +
     overallHtml + regionHtml + speciesHtml + bonusHtml + stateHtml + '</div>';
 }
 
@@ -1040,7 +1180,7 @@ function groupOystersByOrigin(){
   return groups;
 }
 function renderMapPanel(guest){
-  return '<div class="panel"><h2>Where your oysters come from</h2>' +
+  return '<div class="panel">' + pageHeadHtml("02", "Ports of Origin · Provenance") + '<h2>Where your oysters come from</h2>' +
     '<p class="hint">Filled circles are places you\'ve tried oysters from — bigger means more varieties from that spot. Hollow circles are still waiting. Drag to pan, scroll or pinch to zoom, tap a circle for details.</p>' +
     '<div id="passportGeoMap" class="geo-map-container"></div>' +
     '</div>';
@@ -1053,9 +1193,11 @@ function wireGeoMap(guest){
   if(passportMapInstance){ try{ passportMapInstance.remove(); }catch(e){} passportMapInstance = null; }
 
   var map = L.map("passportGeoMap", { scrollWheelZoom:true, minZoom:2 });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    subdomains:"abcd", maxZoom:19,
-    attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+  // OpenStreetMap's standard tiles — free, no API key required (CARTO's basemaps began
+  // requiring a key, which put an "API KEY REQUIRED" watermark across the map).
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
   var triedIds = {};
@@ -1122,14 +1264,20 @@ function render(){
   } else if(activeTabKey === "passport"){
     wireGeoMap(guest);
     wireShareCard(guest);
+    wireHistory(guest);
   } else if(activeTabKey === "leaderboard"){
     wireLeaderboard();
   }
+  // House averages power the "you vs. the house" comparisons on every tab — start the fetch
+  // as soon as we're signed in. No-op if already loaded or in flight.
+  ensureLeaderboardLoaded();
 }
 
 function renderLogin(){
   return '' +
     '<div class="panel cover-panel">' +
+      '<p class="cover-eyebrow">Half Shell Raw Bar · Charlotte, N.C.</p>' +
+      '<div class="cover-seal">🦪</div>' +
       '<p class="cover-title">Open your passport</p>' +
       '<div class="cover-rule"></div>' +
       '<div class="benefits-list">' +
@@ -1170,12 +1318,14 @@ function wireLogin(){
 function renderSignup(){
   return '' +
     '<div class="panel cover-panel">' +
+      '<p class="cover-eyebrow">Half Shell Raw Bar · Charlotte, N.C.</p>' +
+      '<div class="cover-seal">🦪</div>' +
       '<p class="cover-title">Welcome to Half Shell</p>' +
       '<div class="cover-rule"></div>' +
       '<p class="cover-hint">First time we\'ve seen this number — let\'s set up your passport.</p>' +
       '<label class="field"><span>First name</span><input type="text" id="signupName" placeholder="Your first name"></label>' +
-      '<label class="field"><span>Email (optional)</span><input type="email" id="signupEmail" placeholder="you@email.com" inputmode="email"></label>' +
-      '<p class="field-note">We\'ll only ever use this if you check the box below — never for anything else.</p>' +
+      '<label class="field"><span>Email</span><input type="email" id="signupEmail" placeholder="you@email.com" inputmode="email"></label>' +
+      '<p class="field-note">Your email secures your passport and is how we reach you about milestones you earn — like an Oyster Masters Society invitation. We\'ll only send oyster news and offers if you check the box below.</p>' +
       '<label class="field checkbox-field"><input type="checkbox" id="signupEmailOptIn"><span>Email me about rare arrivals and exclusive oyster dinners.</span></label>' +
       '<button class="primary" id="createPassportBtn">Create my passport</button>' +
       '<button type="button" class="switch-link back-link" id="backToPhoneBtn">← Not your number?</button>' +
@@ -1190,6 +1340,11 @@ function wireSignup(){
   document.getElementById("createPassportBtn").addEventListener("click", function(){
     var name = (document.getElementById("signupName").value || "").trim() || "Guest";
     var email = (document.getElementById("signupEmail").value || "").trim();
+    // Email is required to open a passport; the marketing opt-in below stays strictly optional.
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      alert("Enter a valid email address — it's how we reach you about milestones and Society invites.");
+      return;
+    }
     var emailOptIn = document.getElementById("signupEmailOptIn").checked && !!email;
     var btn = document.getElementById("createPassportBtn");
     btn.disabled = true; btn.textContent = "Creating…";
@@ -1243,17 +1398,20 @@ function renderProfile(guest){
   var initial = (guest.name || "?").trim().charAt(0).toUpperCase();
   var mrz = mrzLinesFor(guest);
   return '' +
-    '<div class="panel">' +
+    '<div class="panel secure-page">' +
+      pageHeadHtml("01", "Bio Data · Données Personnelles") +
       '<div class="welcome-row"><h2>Your Passport</h2><button class="switch-link" id="switchBtn">Not you?</button></div>' +
       '<div class="bio-page">' +
         '<div class="photo-box">' + (initial || "🦪") + '</div>' +
+        '<div class="bio-seal">HALF·SHELL RAW BAR CLT</div>' +
         '<div class="bio-fields">' +
-          '<div class="bio-row"><span class="bf-label">Name</span><span class="bf-value bf-name">' + guest.name + '</span></div>' +
+          '<div class="bio-row"><span class="bf-label">Name</span><span class="bf-value bf-name">' + escapeHtml(guest.name) + ' <button type="button" class="switch-link" id="editNameBtn" title="Correct the name on your passport">edit</button></span></div>' +
           '<div class="bio-row"><span class="bf-label">Passport No.</span><span class="bf-value">' + (guest.passportNo || "—") + '</span></div>' +
           '<div class="bio-row"><span class="bf-label">Issued</span><span class="bf-value">' + formatIssuedDate(guest.firstVisit) + '</span></div>' +
           '<div class="bio-row"><span class="bf-label">Current rank</span><span class="bf-value">' + rank + '</span></div>' +
         '</div>' +
       '</div>' +
+      '<p class="microprint">' + Array(6).fill("HALFSHELLRAWBAR·CHARLOTTE·NC·OYSTERPASSPORT·").join("") + '</p>' +
       '<div class="stat-row">' +
         '<div class="stat"><p class="lbl">Oysters eaten</p><p class="val">' + totalOystersEaten(guest) + '</p></div>' +
         '<div class="stat"><p class="lbl">Varieties tried</p><p class="val">' + distinct + ' / ' + OYSTERS_FULL.length + '</p></div>' +
@@ -1388,21 +1546,39 @@ function collectNewlyEarned(before, after){
   checkArr(before.bonus, after.bonus);
   return newly;
 }
+// Not every stamp deserves the same fanfare — a first visit can technically light up a dozen
+// progress stamps at once, which cheapens the moment. Rank what was earned and celebrate only
+// the few most meaningful unlocks; the rest are folded into a quiet "+N more" line.
+function stampPriority(s){
+  if(s.id === "overall-oystermaster") return 100;
+  if(s.id.indexOf("overall-") === 0) return 90;              // passport level tiers
+  if(s.id.indexOf("region-") === 0) return s.icon !== "🧭" ? 80 : 35; // completed regions carry their own icon
+  if(s.id.indexOf("state-") === 0) return 15;                // states are the confetti, not the headline
+  return 60;                                                 // species + special stamps
+}
+var CELEBRATE_MAX = 3;
 function showCelebrationOverlay(newlyEarned){
   if(!newlyEarned || !newlyEarned.length) return;
   var old = document.getElementById("celebrationOverlay");
   if(old) old.remove();
-  var items = newlyEarned.map(function(s){
+  var ranked = newlyEarned.slice().sort(function(a, b){ return stampPriority(b) - stampPriority(a); });
+  var featured = ranked.slice(0, CELEBRATE_MAX);
+  var extraCount = ranked.length - featured.length;
+  var items = featured.map(function(s, i){
     var inner = s.shape ? s.shape : (s.icon || "🦪");
-    return '<div class="celebrate-item"><div class="celebrate-stamp">' + inner + '</div><p class="celebrate-label">' + s.label + '</p></div>';
+    return '<div class="celebrate-item"><div class="celebrate-stamp stamp-thunk" style="animation-delay:' + (0.15 + i * 0.4) + 's;">' + inner + '</div><p class="celebrate-label">' + s.label + '</p></div>';
   }).join("");
+  var extraLine = extraCount > 0
+    ? '<p class="celebrate-extra">…plus ' + extraCount + ' more stamp' + (extraCount === 1 ? "" : "s") + ' quietly inked into your passport — see the Passport tab.</p>'
+    : "";
   var overlay = document.createElement("div");
   overlay.id = "celebrationOverlay";
   overlay.className = "share-modal-overlay";
   overlay.innerHTML =
     '<div class="share-modal celebrate-modal">' +
-      '<p class="celebrate-eyebrow">' + (newlyEarned.length > 1 ? "New stamps unlocked!" : "New stamp unlocked!") + '</p>' +
+      '<p class="celebrate-eyebrow">' + (featured.length > 1 ? "New stamps in your passport!" : "New stamp in your passport!") + '</p>' +
       '<div class="celebrate-grid">' + items + '</div>' +
+      extraLine +
       '<button type="button" class="primary" id="celebrationCloseBtn">Nice!</button>' +
     '</div>';
   document.body.appendChild(overlay);
@@ -1432,6 +1608,24 @@ function wireProfile(){
     forgetPhone();
     authState = "phone";
     render();
+  });
+  var editBtn = document.getElementById("editNameBtn");
+  if(editBtn) editBtn.addEventListener("click", function(){
+    var guest = GUESTS[activePhone];
+    if(!guest) return;
+    var newName = prompt("Update the name on your passport:", guest.name);
+    if(newName === null) return;
+    newName = newName.trim();
+    if(!newName || newName === guest.name) return;
+    apiFetch("/api/save-guest", { method:"POST", body:{ phone:activePhone, name:newName } }).then(function(r){
+      if(r.ok && r.data.guest){
+        guest.name = r.data.guest.name;
+        leaderboardRows = null; houseAvgs = null; // leaderboard shows names — refetch with the new one
+        render();
+      } else {
+        alert((r.data && r.data.error) || "Could not update your name — try again.");
+      }
+    }).catch(function(){ alert("Network error — check your connection and try again."); });
   });
 }
 
@@ -1470,6 +1664,15 @@ function renderRatingForm(guest){
     var o = byIdFull[id] || { id:id, name:id, st:"", note:"" };
     var prior = priorAvg[id];
     var priorHtml = (prior !== undefined) ? '<p class="prev-rating">You\'ve rated this ' + fmt1(prior) + '/5 before</p>' : '';
+    // Resurface the guest's own most recent tasting note for this oyster — half the fun of a
+    // journal is reading your past self at the table.
+    var lastNote = lastNoteFor(guest, o.id);
+    var lastNoteHtml = lastNote
+      ? '<p class="prev-rating">Last time you said: “' + escapeHtml(lastNote.note) + '” <span style="color:var(--text-muted);">(' + formatIssuedDate(lastNote.date) + ')</span></p>'
+      : '';
+    var condChips = CONDIMENTS.map(function(c){
+      return '<button type="button" class="cond-chip" data-cond="' + c.key + '" data-cond-oyster="' + o.id + '">' + c.icon + ' ' + c.label + '</button>';
+    }).join("");
     var detailRows = DETAIL_CRITERIA.map(function(c){
       return '<div class="detail-row"><label>' + c.label + '</label>' +
         '<input type="range" min="0" max="5" step="0.1" value="2.5" data-detail="' + c.key + '" data-oyster="' + o.id + '">' +
@@ -1481,6 +1684,7 @@ function renderRatingForm(guest){
         '<p class="oname">' + o.name + (o.st ? ' <span style="color:var(--text-muted); font-weight:400;">(' + o.st + ')</span>' : '') + '</p>' +
         oysterMetaHtml(o) +
         '<p class="onote">' + o.note + '</p>' +
+        '<p class="house-avg">⭑ <span data-house-avg="' + o.id + '">' + houseAvgText(o.id) + '</span></p>' +
         '<div class="star-display" data-star-display="' + o.id + '">' +
           '<span class="star-track">★★★★★</span>' +
           '<span class="star-fill" style="width:0%">★★★★★</span>' +
@@ -1494,7 +1698,9 @@ function renderRatingForm(guest){
           '<span class="qty-val" data-qty-val="' + o.id + '">1</span>' +
           '<button type="button" class="qty-btn" data-qty-inc="' + o.id + '">+</button>' +
         '</div></div>' +
+        '<div class="cond-row"><span class="cond-title">How\'d you take ' + (o.name.slice(-1).toLowerCase() === "s" ? "them" : "it") + '?</span><div class="cond-chips">' + condChips + '</div></div>' +
         priorHtml +
+        lastNoteHtml +
         '<button type="button" class="detail-toggle" data-detail-toggle="' + o.id + '">+ Rate in detail (optional)</button>' +
         '<div class="detail-panel" data-detail-panel="' + o.id + '">' + detailRows + '</div>' +
         '<textarea class="note" data-oyster="' + o.id + '" placeholder="Anything you noticed? (optional)"></textarea>' +
@@ -1517,6 +1723,16 @@ function setStarFill(oid, val){
 function wireRatingForm(){
   var touched = {};
   var qty = {};
+  var conds = {};
+  Array.prototype.forEach.call(document.querySelectorAll(".cond-chip"), function(btn){
+    var oid = btn.getAttribute("data-cond-oyster");
+    var key = btn.getAttribute("data-cond");
+    btn.addEventListener("click", function(){
+      conds[oid] = conds[oid] || {};
+      conds[oid][key] = !conds[oid][key];
+      btn.classList.toggle("active", conds[oid][key]);
+    });
+  });
   Array.prototype.forEach.call(document.querySelectorAll('[data-qty-val]'), function(el){
     qty[el.getAttribute("data-qty-val")] = 1;
   });
@@ -1581,7 +1797,8 @@ function wireRatingForm(){
           detailed[c.key] = dInput ? parseFloat(dInput.value) : null;
         });
       }
-      ratings.push({ oysterId:oid, overall:Math.round(val * 10) / 10, note:(noteEl ? noteEl.value.trim() : ""), detailed:detailed, qty:qty[oid] || 1 });
+      var chosenConds = Object.keys(conds[oid] || {}).filter(function(k){ return conds[oid][k]; });
+      ratings.push({ oysterId:oid, overall:Math.round(val * 10) / 10, note:(noteEl ? noteEl.value.trim() : ""), detailed:detailed, qty:qty[oid] || 1, condiments:chosenConds });
     });
     if(!ratings.length){ alert("Move at least one slider before saving."); return; }
     var newVisits = (guest.visits || []).concat([{ date:new Date().toISOString(), menu:activeMenuKey, ratings:ratings }]);
@@ -1596,7 +1813,7 @@ function wireRatingForm(){
       guest.visits = r.data.guest.visits;
       var afterStamps = computeStamps(guest);
       var newlyEarned = collectNewlyEarned(beforeStamps, afterStamps);
-      leaderboardRows = null; // stats just changed — refetch next time the leaderboard tab is viewed
+      leaderboardRows = null; houseAvgs = null; // stats just changed — refetch fresh comparisons
       maybeClaimMasterNumber(guest, afterStamps).then(function(){
         render();
         var box = document.getElementById("confirmBox");
@@ -1616,28 +1833,47 @@ function renderFlavorFingerprint(guest){
   var ratings = allRatings(guest);
   if(ratings.length < 3){
     var need = 3 - ratings.length;
-    return '<div class="panel"><h2>Your Flavor Fingerprint</h2><p class="lock-msg">Rate ' + need + ' more oyster' + (need === 1 ? "" : "s") + ' to reveal your flavor fingerprint.</p></div>';
+    return '<div class="panel">' + pageHeadHtml("05", "Bearer Profile · Profil") + '<h2>Your Flavor Fingerprint</h2><p class="lock-msg">Rate ' + need + ' more oyster' + (need === 1 ? "" : "s") + ' to reveal your flavor fingerprint.</p></div>';
   }
   var aff = affinityProfile(guest);
   var tags = Object.keys(aff).filter(function(t){ return aff[t] > 0; }).sort(function(a,b){ return aff[b] - aff[a]; }).slice(0, 6);
   if(!tags.length){
-    return '<div class="panel"><h2>Your Flavor Fingerprint</h2><p class="lock-msg">Not enough flavor signal yet — keep rating and your fingerprint will take shape.</p></div>';
+    return '<div class="panel">' + pageHeadHtml("05", "Bearer Profile · Profil") + '<h2>Your Flavor Fingerprint</h2><p class="lock-msg">Not enough flavor signal yet — keep rating and your fingerprint will take shape.</p></div>';
   }
   var max = aff[tags[0]];
   var bars = tags.map(function(t){
     var pct = Math.max(8, Math.round((aff[t] / max) * 100));
     return '<div class="fp-row"><span class="fp-label">' + t + '</span><div class="fp-bar-track"><div class="fp-bar-fill" style="width:' + pct + '%;"></div></div></div>';
   }).join("");
-  return '<div class="panel"><h2>Your Flavor Fingerprint</h2><p class="hint">Built from everything you\'ve rated highly — the more you rate, the sharper this gets.</p>' + bars + '</div>';
+  // Condiment habits — how this guest dresses their oysters, weighted by quantity eaten.
+  var condCounts = {}, condTotal = 0;
+  allRatings(guest).forEach(function(r){
+    (r.condiments || []).forEach(function(k){
+      condCounts[k] = (condCounts[k] || 0) + (r.qty || 1);
+      condTotal += (r.qty || 1);
+    });
+  });
+  var condKeys = Object.keys(condCounts).sort(function(a, b){ return condCounts[b] - condCounts[a]; });
+  var condHtml = "";
+  if(condKeys.length){
+    var condMax = condCounts[condKeys[0]];
+    condHtml = '<p class="fp-subhead">How you take them</p>' + condKeys.map(function(k){
+      var c = CONDIMENT_BY_KEY[k] || { label:k, icon:"" };
+      var pct = Math.max(8, Math.round((condCounts[k] / condMax) * 100));
+      var share = Math.round((condCounts[k] / condTotal) * 100);
+      return '<div class="fp-row"><span class="fp-label">' + c.icon + ' ' + c.label + '</span><div class="fp-bar-track"><div class="fp-bar-fill" style="width:' + pct + '%;"></div></div><span class="fp-share">' + share + '%</span></div>';
+    }).join("");
+  }
+  return '<div class="panel">' + pageHeadHtml("05", "Bearer Profile · Profil") + '<h2>Your Flavor Fingerprint</h2><p class="hint">Built from everything you\'ve rated highly — the more you rate, the sharper this gets.</p>' + bars + condHtml + '</div>';
 }
 
 function renderPredictions(guest){
   var result = predictFavorites(guest);
   if(result.locked){
-    return '<div class="panel"><h2>Predicted favorites</h2><p class="lock-msg">Rate ' + (3 - result.have) + ' more oyster' + ((3-result.have)===1?"":"s") + ' to unlock personalized predictions.</p></div>';
+    return '<div class="panel">' + pageHeadHtml("06", "Next Crossings · Recommandé") + '<h2>Predicted favorites</h2><p class="lock-msg">Rate ' + (3 - result.have) + ' more oyster' + ((3-result.have)===1?"":"s") + ' to unlock personalized predictions.</p></div>';
   }
   if(!result.picks.length){
-    return '<div class="panel"><h2>Predicted favorites</h2><p class="lock-msg">Not enough flavor signal yet — keep rating and predictions will sharpen.</p></div>';
+    return '<div class="panel">' + pageHeadHtml("06", "Next Crossings · Recommandé") + '<h2>Predicted favorites</h2><p class="lock-msg">Not enough flavor signal yet — keep rating and predictions will sharpen.</p></div>';
   }
   var tagLine = result.topTags.length
     ? '<p class="profile-tags">Your flavor profile so far: <b>' + result.topTags.join(", ") + '</b></p>'
@@ -1648,14 +1884,14 @@ function renderPredictions(guest){
       '<div><p class="p-name">' + p.oyster.name + ' <span style="color:var(--text-muted); font-weight:400;">(' + p.oyster.st + ')</span></p>' +
       '<p class="p-why">' + why + '</p></div></div>';
   }).join("");
-  return '<div class="panel"><h2>Predicted favorites</h2>' + tagLine + cards +
+  return '<div class="panel">' + pageHeadHtml("06", "Next Crossings · Recommandé") + '<h2>Predicted favorites</h2>' + tagLine + cards +
     '<p class="hint" style="margin-top:.75rem;">A simple flavor-matching heuristic based on what you\'ve rated highly so far — not real machine learning, but the same idea.</p></div>';
 }
 
 function renderTriedList(guest){
   var distinct = distinctOysterIds(guest);
   if(!distinct.length){
-    return '<div class="panel"><h2>Oysters you\'ve tried</h2><p class="hint" style="margin:0;">Nothing rated yet — this list fills in as you go.</p></div>';
+    return '<div class="panel">' + pageHeadHtml("03", "Entry Record · Registre") + '<h2>Oysters you\'ve tried</h2><p class="hint" style="margin:0;">Nothing rated yet — this list fills in as you go.</p></div>';
   }
   var avgs = oysterAverages(guest);
   var eaten = {};
@@ -1667,14 +1903,17 @@ function renderTriedList(guest){
   var items = distinct.slice().sort(function(a,b){ return avgs[b] - avgs[a]; }).map(function(id){
     var o = byIdFull[id] || { id:id, name:id };
     var firstLabel = firstTried[id] ? formatIssuedDate(firstTried[id]) : "";
+    var houseLine = (houseAvgs && houseAvgs[id] && houseAvgs[id].count > 1)
+      ? '<br><span class="m-count">House: ' + fmt1(houseAvgs[id].avg) + '/5</span>' : "";
     return '<div class="map-item">' + oysterImgHtml(id) +
       '<span class="m-name">' + o.name + '</span>' +
-      '<span class="m-avg">' + fmt1(avgs[id]) + '/5</span><br>' +
+      '<span class="m-avg">You: ' + fmt1(avgs[id]) + '/5</span>' +
+      houseLine + '<br>' +
       '<span class="m-count">' + eaten[id] + ' eaten</span>' +
       (firstLabel ? '<br><span class="m-count">First: ' + firstLabel + '</span>' : "") +
     '</div>';
   }).join("");
-  return '<div class="panel"><h2>Oysters you\'ve tried</h2><p class="hint">Every oyster you\'ve rated, any night.</p><div class="map-grid">' + items + '</div></div>';
+  return '<div class="panel">' + pageHeadHtml("03", "Entry Record · Registre") + '<h2>Oysters you\'ve tried</h2><p class="hint">Every oyster you\'ve rated, any night.</p><div class="map-grid">' + items + '</div></div>';
 }
 
 // ---------- Leaderboard — ranks every real guest in the database, fetched fresh from the server ----------
@@ -1720,17 +1959,50 @@ function wireLeaderboard(){
   if(clearBtn) clearBtn.addEventListener("click", clearDemoLeaderboardData);
 }
 // Pulls every guest's stats from the server — real cross-device data, not just what's on this browser.
+// "The house" = every real guest's ratings, aggregated per oyster. Demo/preview rows never count.
+function computeHouseAverages(){
+  if(!Array.isArray(leaderboardRows)) return null;
+  var agg = {};
+  leaderboardRows.forEach(function(g){
+    (g.visits || []).forEach(function(v){
+      (v.ratings || []).forEach(function(r){
+        if(typeof r.overall !== "number") return;
+        agg[r.oysterId] = agg[r.oysterId] || { sum:0, count:0 };
+        agg[r.oysterId].sum += r.overall;
+        agg[r.oysterId].count += 1;
+      });
+    });
+  });
+  var out = {};
+  Object.keys(agg).forEach(function(id){ out[id] = { avg: agg[id].sum / agg[id].count, count: agg[id].count }; });
+  return out;
+}
+function houseAvgText(id){
+  if(!houseAvgs) return "…";
+  var h = houseAvgs[id];
+  if(!h || !h.count) return "Be the first here to rate this one";
+  return "House average " + fmt1(h.avg) + "/5 · " + h.count + " rating" + (h.count === 1 ? "" : "s");
+}
+// Fill house-average spans in place — a full render() here would wipe sliders mid-rating.
+function patchHouseAvgs(){
+  if(!houseAvgs) return;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-house-avg]"), function(el){
+    el.textContent = houseAvgText(el.getAttribute("data-house-avg"));
+  });
+}
 function ensureLeaderboardLoaded(){
   if(leaderboardRows !== null || leaderboardLoading) return;
   leaderboardLoading = true;
   apiFetch("/api/leaderboard" + (activePhone ? "?phone=" + activePhone : "")).then(function(r){
     leaderboardLoading = false;
     leaderboardRows = (r.ok && Array.isArray(r.data.guests)) ? r.data.guests : [];
-    render();
+    houseAvgs = computeHouseAverages();
+    if(activeTabKey === "leaderboard"){ render(); } else { patchHouseAvgs(); }
   }).catch(function(){
     leaderboardLoading = false;
     leaderboardRows = [];
-    render();
+    houseAvgs = computeHouseAverages();
+    if(activeTabKey === "leaderboard"){ render(); } else { patchHouseAvgs(); }
   });
 }
 function computeLeaderboards(){
@@ -1790,13 +2062,12 @@ function renderLeaderboard(){
 }
 
 function renderHistory(guest){
-  var visits = (guest.visits || []).slice().reverse();
-  if(!visits.length) return "";
-  var items = "";
-  visits.forEach(function(v){
+  if(!(guest.visits || []).length) return "";
+  var rows = [];
+  (guest.visits || []).forEach(function(v, vi){
     var d = new Date(v.date);
     var dateLabel = d.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" });
-    v.ratings.forEach(function(r){
+    (v.ratings || []).forEach(function(r, ri){
       var o = byIdFull[r.oysterId];
       var detailBits = "";
       if(r.detailed){
@@ -1804,13 +2075,96 @@ function renderHistory(guest){
           return c.label + " " + (r.detailed[c.key] != null ? r.detailed[c.key].toFixed(1) : "—");
         }).join(", ") + ")";
       }
-      items += '<div class="history-item">' +
-        '<div><span class="h-name">' + (o ? o.name : r.oysterId) + '</span><br><span class="h-meta">' + dateLabel + (r.note ? ' — ' + r.note : '') + detailBits + '</span></div>' +
+      var condBits = (r.condiments && r.condiments.length) ? ' · ' + condimentLabels(r.condiments).join(", ") : "";
+      rows.push('<div class="history-item" data-hist="' + vi + ':' + ri + '">' +
+        '<div><span class="h-name">' + (o ? o.name : r.oysterId) + '</span><br>' +
+        '<span class="h-meta">' + dateLabel + (r.note ? ' — ' + escapeHtml(r.note) : '') + detailBits + condBits + '</span><br>' +
+        '<button type="button" class="switch-link hist-edit" data-hist-edit="' + vi + ':' + ri + '">Edit</button></div>' +
         '<div class="h-stars">' + fmt1(r.overall) + '/5</div>' +
-      '</div>';
+      '</div>');
     });
   });
-  return '<div class="panel"><h2>Your rating history</h2>' + items + '</div>';
+  return '<div class="panel">' + pageHeadHtml("07", "Ledger of Tastings · Journal") + '<h2>Your rating history</h2>' +
+    '<p class="hint">Fat-fingered a slider? Any entry can be corrected or removed.</p>' + rows.reverse().join("") + '</div>';
+}
+// Persists a corrected visits array and refreshes everything derived from it.
+function saveVisitsEdit(guest, newVisits, btn){
+  if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
+  apiFetch("/api/save-guest", { method:"POST", body:{ phone:activePhone, visits:newVisits } }).then(function(r){
+    if(!r.ok || !r.data.guest){
+      if(btn){ btn.disabled = false; btn.textContent = "Save changes"; }
+      alert((r.data && r.data.error) || "Could not save the change — try again.");
+      return;
+    }
+    guest.visits = r.data.guest.visits;
+    leaderboardRows = null; houseAvgs = null; // averages and rankings just moved
+    render();
+  }).catch(function(){
+    if(btn){ btn.disabled = false; btn.textContent = "Save changes"; }
+    alert("Network error — check your connection and try again.");
+  });
+}
+function wireHistory(guest){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-hist-edit]"), function(editBtn){
+    editBtn.addEventListener("click", function(){
+      var parts = editBtn.getAttribute("data-hist-edit").split(":");
+      var vi = parseInt(parts[0], 10), ri = parseInt(parts[1], 10);
+      var visit = (guest.visits || [])[vi];
+      var rating = visit && (visit.ratings || [])[ri];
+      var row = document.querySelector('[data-hist="' + vi + ':' + ri + '"]');
+      if(!rating || !row) return;
+      var o = byIdFull[rating.oysterId];
+      var dateLabel = new Date(visit.date).toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" });
+      var condChips = CONDIMENTS.map(function(c){
+        var on = (rating.condiments || []).indexOf(c.key) !== -1;
+        return '<button type="button" class="cond-chip' + (on ? ' active' : '') + '" data-he-cond="' + c.key + '">' + c.icon + ' ' + c.label + '</button>';
+      }).join("");
+      row.classList.add("editing");
+      row.innerHTML =
+        '<div class="hist-editor">' +
+          '<p class="h-name" style="margin:0 0 6px;">' + (o ? o.name : rating.oysterId) + ' <span class="h-meta">' + dateLabel + '</span></p>' +
+          '<div class="slider-row"><input type="range" min="0" max="5" step="0.1" value="' + rating.overall + '" id="heRange"><span class="slider-val" id="heVal">' + fmt1(rating.overall) + ' / 5</span></div>' +
+          '<div class="qty-row"><span>Qty eaten</span><input type="number" id="heQty" min="1" max="24" value="' + (rating.qty || 1) + '"></div>' +
+          '<div class="cond-row"><span class="cond-title">Condiments</span><div class="cond-chips">' + condChips + '</div></div>' +
+          '<textarea class="note" id="heNote" placeholder="Tasting note (optional)">' + escapeHtml(rating.note || "") + '</textarea>' +
+          '<div class="hist-editor-btns">' +
+            '<button type="button" class="primary" id="heSave">Save changes</button>' +
+            '<button type="button" class="switch-link" id="heRemove">Remove this rating</button>' +
+            '<button type="button" class="switch-link" id="heCancel">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      var range = document.getElementById("heRange");
+      range.addEventListener("input", function(){
+        document.getElementById("heVal").textContent = parseFloat(range.value).toFixed(1) + " / 5";
+      });
+      var heConds = {};
+      (rating.condiments || []).forEach(function(k){ heConds[k] = true; });
+      Array.prototype.forEach.call(row.querySelectorAll("[data-he-cond]"), function(chip){
+        chip.addEventListener("click", function(){
+          var k = chip.getAttribute("data-he-cond");
+          heConds[k] = !heConds[k];
+          chip.classList.toggle("active", !!heConds[k]);
+        });
+      });
+      document.getElementById("heCancel").addEventListener("click", function(){ render(); });
+      document.getElementById("heSave").addEventListener("click", function(){
+        var newVisits = JSON.parse(JSON.stringify(guest.visits));
+        var edited = newVisits[vi].ratings[ri];
+        edited.overall = Math.round(parseFloat(range.value) * 10) / 10;
+        edited.qty = Math.max(1, Math.min(24, parseInt(document.getElementById("heQty").value, 10) || 1));
+        edited.note = document.getElementById("heNote").value.trim();
+        edited.condiments = Object.keys(heConds).filter(function(k){ return heConds[k]; });
+        saveVisitsEdit(guest, newVisits, document.getElementById("heSave"));
+      });
+      document.getElementById("heRemove").addEventListener("click", function(){
+        if(!confirm("Remove this rating from your passport permanently?")) return;
+        var newVisits = JSON.parse(JSON.stringify(guest.visits));
+        newVisits[vi].ratings.splice(ri, 1);
+        if(!newVisits[vi].ratings.length) newVisits.splice(vi, 1); // a visit with nothing rated vanishes too
+        saveVisitsEdit(guest, newVisits, null);
+      });
+    });
+  });
 }
 
 boot();
